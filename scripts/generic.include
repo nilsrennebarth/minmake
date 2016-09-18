@@ -150,7 +150,11 @@ quiet_cmd_instlib  = install libs in $(dir)/
 quiet_cmd_instprog = install progs in $(dir)/
 Instd = $(DESTDIR)$(PREFIX)
 
-# Templates for magic variables
+#
+# Templates for magic production rules
+#
+
+# template for dymanic libraries
 define Dynamic-Lib-template
 $(1)-Version ?= 0.0.0
 $(1)-Sversion ?= $$(firstword $$(subst ., ,$$($(1)-Version)))
@@ -172,6 +176,7 @@ install::
 	$(Q)cp --no-dereference $(1).so* $(Instd)/lib
 endef
 
+# template for static libraries
 define Static-Lib-template
 $(1).a: $$($(1)-Objects)
 targets += $(1).a
@@ -184,6 +189,7 @@ install::
 	$(Q)cp $(1).a $(Instd)/lib
 endef
 
+# template for a C++ program
 define CXX-Program-template
 $(1): $$($(1)-Objects)
 targets += $(1)
@@ -199,6 +205,7 @@ install::
 endif
 endef
 
+# template for a C program
 define C-Program-template
 $(1): $$($(1)-Objects)
 targets += $(1)
