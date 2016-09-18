@@ -1,0 +1,71 @@
+# Generic toplevel makefile, initial part              -*-Makefile-gmake-*-
+# Store initial directory
+PROJECT_ROOT:=$(CURDIR)
+export PROJECT_ROOT
+
+# Do not use make's built-in rules and variables
+# (this increases performance and avoids hard-to-debug behaviour)
+MAKEFLAGS += -rR
+
+# look for fixed makefile parts here
+MAKEFLAGS += --include-dir=$(SCRIPTDIR)
+
+# Support verbose with V=1, or with V containing s to support openwrt
+Build_verbose := $(if $(findstring s,$(V)),1,$(V))
+# To put more focus on warnings, be less verbose as default
+ifeq ($(Build_verbose),1)
+  quiet =
+  Q =
+else
+  quiet=quiet_
+  Q = @
+  MAKEFLAGS += --no-print-directory
+endif
+
+# Support output to different directory with O=dir,
+# but only from commandline
+ifeq ("$(origin O)", "command line")
+  PROJECT_OUTPUT_DIR = $(or $(filter /%,$(O)),$(PROJECT_ROOT)/$(O))
+  export PROJECT_OUTPUT_DIR
+endif
+
+# If the user is running make -s (silent mode), suppress echoing of
+# commands
+ifneq ($(filter s% -s%,$(MAKEFLAGS)),)
+  quiet=silent_
+endif
+
+export quiet Q
+# Avoid interference with shell env settings
+unexport GREP_OPTIONS
+
+# set make variables
+AS		= $(CROSS_COMPILE)as
+LD		= $(CROSS_COMPILE)ld
+CC		= $(CROSS_COMPILE)gcc
+CPP		= $(CC) -E
+CXX		= $(CROSS_COMPILE)g++
+AR		= $(CROSS_COMPILE)ar
+NM		= $(CROSS_COMPILE)nm
+STRIP		= $(CROSS_COMPILE)strip
+OBJCOPY		= $(CROSS_COMPILE)objcopy
+OBJDUMP		= $(CROSS_COMPILE)objdump
+PERL		= perl
+PREFIX          = /usr/local
+
+# compiler flags
+c_comflags := -Wall -fno-strict-aliasing -Wno-trigraphs \
+			-Wno-write-strings
+
+GENERIC_CXXFLAGS := $(c_comflags)
+GENERIC_CFLAGS   := $(c_comflags) -Wstrict-prototypes
+
+# export global Variables
+export AS LD CC CPP CXX AR NM STRIP OBJCOPY OBJDUMP PERL PREFIX
+export GENERIC_CFLAGS GENERIC_CXXFLAGS
+export DEFINES INCLUDES LOADLIBES
+
+Standard-targets := all _all clean install build
+
+# Generic definitions
+include $(SCRIPTDIR)/generic.include
