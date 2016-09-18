@@ -1,7 +1,7 @@
-= minmake =
+# minmake #
 A minimal make system to use with GNU make and gcc
 
-== Features ==
+## Features ##
 The make system uses GNU make's (and GCC's) features to create a build system
 with the following features:
 - recursive builds
@@ -20,7 +20,7 @@ with the following features:
   programs.
 - Small Makefiles with a minimum of boilerplate
 
-== Usage ==
+## Usage ##
 The files in the `script` directory contain the actual generic code
 (and yes, it isn't much) 
 
@@ -49,7 +49,7 @@ default C compilation rules, e.g. LOADLIBES or some variables defined by
 our rules, e.g. GENERIC_CFLAGS, DEFINES, INCLUDES
 
 
-== How it works ==
+## How it works ##
 The basic trick is, to run make in a subdirectory by calling a special
 rule which takes the fixed file descend.include as the real Makefile,
 which in turn includes first the generic definitions and second the 
