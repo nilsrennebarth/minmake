@@ -1,0 +1,73 @@
+# run make in a subdirectory                           -*-Makefile-gmake-*-
+
+#########################
+# Initial part
+PHONY := 
+action := $(MAKECMDGOALS)
+targets :=
+cleanups :=
+C-Programs :=
+CXX-Programs :=
+Static-Libs :=
+Dynamic-Libs :=
+ifdef PROJECT_OUTPUT_DIR
+Src := $(PROJECT_ROOT)/$(dir)/
+Out := $(PROJECT_OUTPUT_DIR)/$(dir)/
+else
+Src :=$(empty)
+Out :=$(empty)
+endif
+include generic.include
+
+
+#########################
+# Include the actual makefile of the current directory
+include $(PROJECT_ROOT)/$(dir)/Makefile
+
+
+
+#########################
+# Final part
+
+# Expand templates
+$(foreach prog,$(C-Programs),$(eval $(call C-Program-template,$(prog))))
+$(foreach prog,$(CXX-Programs),$(eval $(call CXX-Program-template,$(prog))))
+$(foreach lib,$(Static-Libs),$(eval $(call Static-Lib-template,$(lib))))
+$(foreach lib,$(Dynamic-Libs),$(eval $(call Dynamic-Lib-template,$(lib))))
+
+# Guard against misuse or typos
+ifeq ($(strip $(targets)$(subdirs)),)
+$(error No target and no subdirectory present)
+endif
+
+# Standard targets
+PHONY += build
+build:: $(subdirs) $(targets)
+
+PHONY += clean
+clean:: $(subdirs)
+	$(call rule_clean)
+
+PHONY += install
+install:: $(subdirs)
+
+# include generated dependencies if present
+-include $(patsubst %.o,%.d,$(filter %.o,$(targets) $(cleanups)))
+
+# Descend into subdirs
+PHONY += $(subdirs)
+$(subdirs):
+ifdef PROJECT_OUTPUT_DIR
+	$(Q)mkdir -p $(PROJECT_OUTPUT_DIR)/$(dir)/$@
+	$(Q)$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
+		$(action) VPATH=$(PROJECT_ROOT)/$(dir)/$@
+else
+	$(Q)$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
+		$(action)
+endif
+
+# The handy FORCE target
+PHONY += FORCE
+FORCE:
+
+.PHONY: $(PHONY)

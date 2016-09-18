@@ -1,0 +1,36 @@
+# Generic toplevel makefile, final part                -*-Makefile-gmake-*-
+PHONY += clean
+clean:: action=clean
+clean:: $(subdirs)
+clean::
+	@rm -f $(targets)
+
+PHONY += install
+install:: action=install
+install:: $(subdirs)
+
+PHONY += all
+all: action=build
+all: $(subdirs) $(targets)
+
+PHONY += $(subdirs)
+$(subdirs):
+ifdef PROJECT_OUTPUT_DIR
+	$(Q)mkdir -p $(PROJECT_OUTPUT_DIR)/$@
+	$(Q)$(MAKE) -C $(PROJECT_OUTPUT_DIR)/$@ -f $(SCRIPTDIR)/descend.include \
+		dir=$@ $(action) VPATH=$(PROJECT_ROOT)/$@
+else
+	$(Q)$(MAKE) -C $@ -f $(SCRIPTDIR)/descend.include \
+		dir=$@ $(action)
+endif
+
+Given-targets := $(filter-out $(Standard-targets), $(MAKECMDGOALS))
+Given-dirs := $(filter %/, $(Given-targets))
+PHONY += $(Given-dirs)
+
+$(Given-dirs):
+	$(Q)$(MAKE) -C $@ -f $(SCRIPTDIR)/descend.include \
+		dir=$(patsubst %/,%,$@) \
+		$(or $(action),build)
+
+.PHONY: $(PHONY)

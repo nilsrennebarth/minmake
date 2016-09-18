@@ -1,0 +1,244 @@
+# Generic definitions for every make invocation        -*-Makefile-gmake-*-
+export SCRIPTDIR
+
+# Convenient variables
+comma  := ,
+squote := '
+empty  :=
+space  := $(empty) $(empty)
+
+# Escape single quote for use in echo statements
+escsq = $(subst $(squote),'\$(squote)',$1)
+
+# echo command.
+# Short version is used, if $(quiet) equals `quiet_', otherwise full one.
+echo-cmd = $(if $($(quiet)cmd_$(1)),\
+	@echo '  $(call escsq,$($(quiet)cmd_$(1)))';)
+
+echo-cmd-arg = $(if $($(quiet)cmd_$(1)),\
+	@echo '  $(call escsq,$(call $(quiet)cmd_$(1),$(2)))';)
+
+# printing commands
+cmd = @$(echo-cmd) $(cmd_$(1))
+
+# Extract relative Paths from an option list and add them as absolute ones
+Opt-Absolutize-Paths =\
+  $(foreach d,$(filter-out /%,$(subst $(1),,$(2))),$(1)$(3)$(d))
+
+# Replace absolute Paths in an option list from PROJECT_ROOT to
+# PROJECT_OUTPUT_DIR
+Opt-Src-to-Out =\
+  $(patsubst $(PROJECT_ROOT)%,$(1)$(PROJECT_OUTPUT_DIR)%,$(filter \
+    $(PROJECT_ROOT)%,$(subst $(1),,$(2))))
+
+# Convenience functions for tranforming all filenames in directory/ies
+ifdef PROJECT_OUTPUT_DIR
+all-o-from-c = $(notdir $(patsubst %.c,%.o,$(wildcard $(Src)*.c)))
+all-o-from-cdirs   = $(foreach dir,$(1),\
+  $(patsubst $(Src)%,%,\
+    $(patsubst %.c,%.o,$(wildcard $(Src)$(dir)/*.c)))\
+)
+all-o-from-cpp = $(notdir $(patsubst %.cpp,%.o,$(wildcard $(Src)*.cpp)))
+all-o-from-cppdirs = $(foreach dir,$(1),\
+  $(patsubst $(Src)%,%,\
+    $(patsubst %.cpp,%.o,$(wildcard $(Src)$(dir)/*.cpp)))\
+)
+else
+all-o-from-c = $(patsubst %.c,%.o,$(wildcard *.c))
+all-o-from-cdirs   = $(foreach dir,$(1),\
+    $(patsubst %.c,%.o,$(wildcard $(dir)/*.c))\
+)
+all-o-from-cpp = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+all-o-from-cppdirs = $(foreach dir,$(1),\
+    $(patsubst %.cpp,%.o,$(wildcard $(dir)/*.cpp))\
+)
+endif
+
+# Source wildcard
+ifdef PROJECT_OUTPUT_DIR
+Sources-with-ext = $(wildcard $(Src)/*$(1))
+else
+Sources-with-ext = $(wildcard *$(1))
+endif
+
+# common c and cxx definitions
+ifdef PROJECT_OUTPUT_DIR
+# For the OUTPUT_DIR option we need to transform
+# relative -I paths for includes and relative -L paths to
+# search libraries
+ Incdirflags = \
+   $(call Opt-Absolutize-Paths,-I,$(INCLUDES),$(Src))\
+   $(INCLUDES)
+ Libdirflags = \
+   $(call Opt-Src-to-Out,-L,$(LOADLIBES))\
+   $(LOADLIBES)
+else
+ Incdirflags = $(INCLUDES)
+ Libdirflags = $(LOADLIBES)
+endif
+
+
+# Compile C sources (.c)
+c_flags = $(GENERIC_CFLAGS) $(Incdirflags) $(DEFINES) $(CFLAGS) -MD -MP
+quiet_cmd_cc_o_c = CC	$(dir)/$@
+cmd_cc_o_c       = $(CC) $(c_flags) -c -o $@ $<
+define rule_cc_o_c
+	$(call echo-cmd,cc_o_c) $(cmd_cc_o_c)
+endef
+
+%.o: %.c
+	$(call rule_cc_o_c)
+
+# Compile CXX  sources (.cpp,cc,...)
+cxx_flags = $(GENERIC_CXXFLAGS) $(Incdirflags) $(DEFINES) $(CFLAGS) -MD -MP
+quiet_cmd_cc_o_cxx = CXX	$(dir)/$@
+cmd_cc_o_cxx       = $(CXX) $(cxx_flags) -c -o $@ $<
+define rule_cc_o_cxx
+	$(call echo-cmd,cc_o_cxx) $(cmd_cc_o_cxx)
+endef
+
+%.o: %.cpp
+	$(call rule_cc_o_cxx)
+
+# Create a library
+
+quiet_cmd_ar_o = AR	$(dir)/$@
+cmd_ar_o       = $(AR) cr $@ $^
+define rule_ar_o
+	$(call echo-cmd,ar_o) $(cmd_ar_o)
+endef
+
+%.a:
+	$(call rule_ar_o)
+
+# Create an executable from C objects
+quiet_cmd_cc_o = LD	$(dir)/$@
+cmd_cc_o       = $(CC) $(GENERIC_LDFLAGS) $(Libdirflags) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
+define rule_cc_o
+	$(call echo-cmd,cc_o) $(cmd_cc_o)
+endef
+
+# Create an executable from CXX objects
+
+quiet_cmd_cxx_o = LD	$(dir)/$@
+cmd_cxx_o       = $(CXX) $(GENERIC_LDFLAGS) $(Libdirflags) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
+define rule_cxx_o
+	$(call echo-cmd,cxx_o) $(cmd_cxx_o)
+endef
+
+# Run xsltproc
+xsltflags = --novalid
+quiet_cmd_xslt = XSLT	$(dir)/$@
+cmd_xslt       = \
+  xsltproc $(xsltflags) $(XSLTOPTS) $(1) -o $@ \
+  $(filter %.xsl,$^) $(filter %.xml,$^)
+define rule_xslt
+	$(call echo-cmd-arg,xslt,$(1)) $(call cmd_xslt,$(1))
+endef
+
+# Cleanup
+quiet_cmd_clean = clean	$(dir)/
+cmd_clean       = rm -f \
+ $(targets)  $(patsubst %.o,%.d,$(filter %.o,$(targets))) \
+ $(cleanups) $(patsubst %.o,%.d,$(filter %.o,$(targets)))
+define rule_clean
+	$(call echo-cmd,clean) $(cmd_clean)
+endef
+
+# Install
+quiet_cmd_instlib  = install libs in $(dir)/
+quiet_cmd_instprog = install progs in $(dir)/
+Instd = $(DESTDIR)$(PREFIX)
+
+# Templates for magic variables
+define Dynamic-Lib-template
+$(1)-Version ?= 0.0.0
+$(1)-Sversion ?= $$(firstword $$(subst ., ,$$($(1)-Version)))
+targets += $(1).so
+cleanups += $(1).so.$$($(1)-Version) $(1).so.$$($(1)-Sversion)
+cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
+$(1).so: GENERIC_CFLAGS += -fpic
+$(1).so: GENERIC_LDFLAGS += -shared -Wl,-soname,$(1).so.$$($(1)-Sversion)
+$(1).so: $$($(1)-Objects)
+	$$(call rule_cc_o)
+	$(Q)mv $(1).so $(1).so.$$($(1)-Version)
+	$(Q)ln -sf $(1).so.$$($(1)-Version) $(1).so
+	$(Q)ln -sf $(1).so.$$($(1)-Version) $(1).so.$$($(1)-Sversion)
+install::
+	@$(call echo-cmd,instlib):
+	$(Q)mkdir -p $(Instd)/include/$$($(1)-Inst-Headers)
+	$(Q)cp $$($(1)-Headers) $(Instd)/include/$$($(1)-Inst-Headers)
+	$(Q)mkdir -p $(Instd)/lib
+	$(Q)cp --no-dereference $(1).so* $(Instd)/lib
+endef
+
+define Static-Lib-template
+$(1).a: $$($(1)-Objects)
+targets += $(1).a
+cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
+install::
+	@$(call echo-cmd,instlib):
+	$(Q)mkdir -p $(Instd)/include/$$($(1)-Inst-Headers)
+	$(Q)cp $$($(1)-Headers) $(Instd)/include/$$($(1)-Inst-Headers)
+	$(Q)mkdir -p $(Instd)/lib
+	$(Q)cp $(1).a $(Instd)/lib
+endef
+
+define CXX-Program-template
+$(1): $$($(1)-Objects)
+targets += $(1)
+cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
+$(1)-Instdir ?= bin
+$(1):
+	$$(call rule_cxx_o)
+ifdef $(1)-Instdir
+install::
+	@$(call echo-cmd,instprog):
+	$(Q)mkdir -p $(Instd)/$$($(1)-Instdir)
+	$(Q)cp $(1) $(Instd)/$$($(1)-Instdir)
+endif
+endef
+
+define C-Program-template
+$(1): $$($(1)-Objects)
+targets += $(1)
+cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
+$(1)-Instdir ?= bin
+$(1):
+	$$(call rule_cc_o)
+ifdef $(1)-Instdir
+install::
+	@$(call echo-cmd,instprog):
+	$(Q)mkdir -p $(Instd)/$$($(1)-Instdir)
+	$(Q)cp $(1) $(Instd)/$$($(1)-Instdir)
+endif
+endef
+
+
+# Optimization: Do not remake our script files
+$(PROJECT_ROOT)/generic.include: ;
+$(PROJECT_ROOT)/toplevel-init.include: ;
+$(PROJECT_ROOT)/toplevel-exit.include: ;
+$(PROJECT_ROOT)/descend.include: ;
+# Neither the toplevel Makefile
+$(PROJECT_ROOT)/Makefile: ;
+
+# Optimization: Override "any" targets that are never used.
+# That is what -rR is supposed to do, but 3.81 is still buggy there.
+%: %.cc
+%: %.C
+%: %.cpp
+%: %.p
+%: %.f
+%: %.F
+%: %.r
+%: %.s
+%: %.S
+%: %.mod
+%: %.sh
+%:: %,v
+%:: RCS/%,v
+%:: RCS/%
+%:: s.%
+# mark included .d files as terminal
+# %.d: ;
