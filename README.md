@@ -88,11 +88,11 @@ to be installed to another directory use the magic Variable *prog*-Instdir
 
 #### Example ####
 The following Makefile in a subdirectory will create the binary foo from 
-main.o, bar.o and baz.o, each of those as usual compiled from their
-source. When compiling baz.c, the additional preprocessor symbol DEBUG will be
-defined. The program will also linked statically against the library
+main.o, bar.o and baz.o, each of those compiled from its respective source as usual.
+When compiling baz.c, the additional preprocessor symbol DEBUG will be
+defined. The program will also be linked statically against the library
 libfizz.a from the sibling directory `lib`.
-`foo` will be installed to `/usr/local/sbin/foo` by the install target:
+`foo` will be installed to `/usr/local/sbin/foo` by the install target.
 
 ~~~~
 C-Programs := foo
@@ -103,14 +103,14 @@ baz.o: DEFINES += -DDEBUG
 ~~~~
 
 ### Magic variable CXX-Programs ###
-This is like the variable C-Programs, but for C++ sources. There is a shortcut
+This is like the variable `C-Programs`, but for C++ sources. There is a shortcut
 for all c++ source files as well: `$(all-o-from-cpp)`, which assumes that c++
 source files end in `.cpp`
 
 ### Magic variable Static-Libs ###
 The words in the magic variable `Static-Libs` are the static libs to be built in
 the corresponding directory. For each library *libl*, the magic variable
-*libl*`-Objects` will specify all object files of the library.
+*libl*`-Objects` will specify the object files of the library.
 
 ### Magic variable Dynamic-Libs ###
 `Dynamic-Libs` will produce DLLs, with the object files for library *libl*
