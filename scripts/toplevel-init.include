@@ -65,6 +65,8 @@ Standard-targets := all _all clean install build
 
 MM-only := yes
 export MM-only
+MM-default-bindir := sbin
+export MM-default-bindir
 
 # Generic definitions
 include $(SCRIPTDIR)/generic.include

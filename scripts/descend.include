@@ -63,15 +63,22 @@ MM-install:: $(subdirs)
 # include generated dependencies if present
 -include $(patsubst %.o,%.d,$(filter %.o,$(targets) $(cleanups)))
 
+MM-hint=:
+ifneq ($(filter build install,$(action)),)
+ifneq ($(Q),)
+MM-hint=echo '$(call escsq,$(1))';
+endif
+endif
 # Descend into subdirs
 PHONY += $(subdirs)
 $(subdirs):
 ifdef PROJECT_OUTPUT_DIR
 	$(Q)mkdir -p $(PROJECT_OUTPUT_DIR)/$(dir)/$@
-	$(Q)$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
+	@$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
 		$(action) VPATH=$(PROJECT_ROOT)/$(dir)/$@
 else
-	$(Q)$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
+	@$(call MM-hint,make $(action) in $(dir)/$@)
+	@$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
 		$(action)
 endif
 

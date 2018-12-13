@@ -18,6 +18,9 @@ echo-cmd = $(if $($(quiet)cmd_$(1)),\
 echo-cmd-arg = $(if $($(quiet)cmd_$(1)),\
 	@echo '  $(call escsq,$(call $(quiet)cmd_$(1),$(2)))';)
 
+echo-cmd-arg2 = $(if $($(quiet)cmd_$(1)),\
+	@echo '  $(call escsq,$(call $(quiet)cmd_$(1),$(2),$(3)))';)
+
 # printing commands
 cmd = @$(echo-cmd) $(cmd_$(1))
 
@@ -146,9 +149,11 @@ define rule_clean
 endef
 
 # Install
-quiet_cmd_instlib  = install libs in $(dir)/
-quiet_cmd_instprog = install progs in $(dir)/
-quiet_cmd_instplug = install plugins in $(dir)/
+quiet_cmd_inst = INST $(1)
+cmd_inst       = install -d $(2); install $(1) $(2);
+define rule_inst
+	$(call echo-cmd-arg2,inst,$(1),$(2)) $(call cmd_inst,$(1),$(2))
+endef
 Instd = $(DESTDIR)$(PREFIX)
 
 #
@@ -165,9 +170,9 @@ $(1).so: $$($(1)-Objects)
 	$$(call rule_cc_o)
 $(1)-Instdir ?= $(MM-Plugindir)
 MM-install::
-	@$(call echo-cmd,instlib):
-	$(Q)mkdir   -p $(Instd)/$$($(1)-Instdir)
-	$(Q)cp $(1).so $(Instd)/$$($(1)-Instdir)
+ifneq ($$($(1)-Instdir),)
+	@$(call rule_inst,$(1).so,$(Instd)/$$($(1)-Instdir))
+endif
 endef
 
 # template for dynamic libraries
@@ -184,14 +189,16 @@ $(1).so: $$($(1)-Objects)
 	$(Q)mv $(1).so $(1).so.$$($(1)-Version)
 	$(Q)ln -sf $(1).so.$$($(1)-Version) $(1).so
 	$(Q)ln -sf $(1).so.$$($(1)-Version) $(1).so.$$($(1)-Sversion)
+$(1)-Instdir ?= $(Instd)/lib/$(ARCHLIBDIR)
 MM-install::
-	@$(call echo-cmd,instlib):
-ifdef $(1)-Headers
-	$(Q)mkdir -p $(Instd)/include/$$($(1)-Inst-Headers)
-	$(Q)cp $$($(1)-Headers) $(Instd)/include/$$($(1)-Inst-Headers)
+ifneq ($$($(1)-Instdir),)
+	@$(call rule_inst,$(1).so.$$($(1)-Version),$$($(1)-Instdir))
+	$(Q)cp --no-dereference $(1).so $(1).so.$$($(1)-Sversion) \
+$(Instd)/lib/$(ARCHLIBDIR)
 endif
-	$(Q)mkdir -p $(Instd)/lib/$(ARCHLIBDIR)
-	$(Q)cp --no-dereference $(1).so* $(Instd)/lib/$(ARCHLIBDIR)
+ifdef $(1)-Headers
+	@$(call rule_inst,$$($(1)-Headers),$(Instd)/include/$$($(1)-Inst-Headers))
+endif
 endef
 
 # template for static libraries
@@ -200,13 +207,11 @@ $(1).a: $$($(1)-Objects)
 targets += $(1).a
 cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
 MM-install::
-	@$(call echo-cmd,instlib):
+
+	@$(call rule_inst,$(1).a,$(Instd)/lib/$(ARCHLIBDIR))
 ifdef $(1)-Headers
-	$(Q)mkdir -p $(Instd)/include/$$($(1)-Inst-Headers)
-	$(Q)cp $$($(1)-Headers) $(Instd)/include/$$($(1)-Inst-Headers)
+	@$(call rule_inst,$$($(1)-Headers),$(Instd)/include/$$($(1)-Inst-Headers))
 endif
-	$(Q)mkdir -p $(Instd)/lib
-	$(Q)cp $(1).a $(Instd)/lib
 endef
 
 # template for a C++ program
@@ -217,11 +222,9 @@ cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
 $(1)-Instdir ?= $(MM-default-bindir)
 $(1):
 	$$(call rule_cxx_o)
-ifdef $(1)-Instdir
+ifneq ($$($(1)-Instdir),)
 MM-install::
-	@$(call echo-cmd,instprog):
-	$(Q)mkdir -p $(Instd)/$$($(1)-Instdir)
-	$(Q)cp $(1) $(Instd)/$$($(1)-Instdir)
+	@$(call rule_inst,$(1),$(Instd)/$$($(1)-Instdir))
 endif
 endef
 
@@ -236,11 +239,9 @@ cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
 $(1)-Instdir ?= $(MM-default-bindir)
 $(1):
 	$$(call rule_cc_o)
-ifdef $(1)-Instdir
+ifneq ($$($(1)-Instdir),)
 MM-install::
-	@$(call echo-cmd,instprog):
-	$(Q)mkdir -p $(Instd)/$$($(1)-Instdir)
-	$(Q)cp $(1) $(Instd)/$$($(1)-Instdir)
+	@$(call rule_inst,$(1),$(Instd)/$$($(1)-Instdir))
 endif
 endef
 
