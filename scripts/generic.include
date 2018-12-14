@@ -116,7 +116,8 @@ endef
 
 # Create an executable from C objects
 quiet_cmd_cc_o = LD	$(dir)/$@
-cmd_cc_o       = $(CC) $(GENERIC_LDFLAGS) $(Libdirflags) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
+cmd_cc_o       = $(CC) $(GENERIC_LDFLAGS) $(Libdirflags) $(CFLAGS) $(LDFLAGS) \
+	$^ $(LDLIBS) -o $@
 define rule_cc_o
 	$(call echo-cmd,cc_o) $(cmd_cc_o)
 endef
@@ -124,7 +125,8 @@ endef
 # Create an executable from CXX objects
 
 quiet_cmd_cxx_o = LD	$(dir)/$@
-cmd_cxx_o       = $(CXX) $(GENERIC_LDFLAGS) $(Libdirflags) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
+cmd_cxx_o       = $(CXX) $(GENERIC_LDFLAGS) $(Libdirflags) $(CFLAGS) $(LDFLAGS) \
+	$^ $(LDLIBS) -o $@
 define rule_cxx_o
 	$(call echo-cmd,cxx_o) $(cmd_cxx_o)
 endef
