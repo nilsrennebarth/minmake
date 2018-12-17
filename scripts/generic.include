@@ -151,7 +151,7 @@ endef
 
 # Install
 quiet_cmd_inst = INST $(1)
-cmd_inst       = install -d $(2); install $(1) $(2);
+cmd_inst       = install -d $(2); cp $(1) $(2);
 define rule_inst
 	$(call echo-cmd-arg2,inst,$(1),$(2)) $(call cmd_inst,$(1),$(2))
 endef
