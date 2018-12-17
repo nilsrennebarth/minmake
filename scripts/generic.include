@@ -170,6 +170,9 @@ $(1).so: GENERIC_CFLAGS += -fpic -fPIC
 $(1).so: GENERIC_LDFLAGS += -shared
 $(1).so: $$($(1)-Objects)
 	$$(call rule_cc_o)
+ifdef MM-C-Plugin-hook
+	$$(call MM-C-Plugin-hook)
+endif
 $(1)-Instdir ?= $(MM-Plugindir)
 MM-install::
 ifneq ($$($(1)-Instdir),)
