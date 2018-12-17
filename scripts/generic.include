@@ -1,5 +1,4 @@
 # Generic definitions for every make invocation        -*-Makefile-gmake-*-
-export SCRIPTDIR
 
 # Convenient variables
 comma  := ,
@@ -252,12 +251,8 @@ endef
 
 
 # Optimization: Do not remake our script files
-$(PROJECT_ROOT)/generic.include: ;
-$(PROJECT_ROOT)/toplevel-init.include: ;
-$(PROJECT_ROOT)/toplevel-exit.include: ;
-$(PROJECT_ROOT)/descend.include: ;
-# Neither the toplevel Makefile
-$(PROJECT_ROOT)/Makefile: ;
+$(MM-sysdir)/generic.include: ;
+$(MM-sysdir)/descend.include: ;
 
 # Optimization: Override "any" targets that are never used.
 # That is what -rR is supposed to do, but 3.81 is still buggy there.

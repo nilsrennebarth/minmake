@@ -7,9 +7,6 @@ export PROJECT_ROOT
 # (this increases performance and avoids hard-to-debug behaviour)
 MAKEFLAGS += -rR
 
-# look for fixed makefile parts here
-MAKEFLAGS += --include-dir=$(SCRIPTDIR)
-
 ARCHLIBDIR := $(shell dpkg-architecture -qDEB_TARGET_MULTIARCH)
 
 # Support verbose with V=1, or with V containing s to support openwrt
@@ -60,6 +57,7 @@ export AS LD CC CPP CXX AR NM STRIP OBJCOPY OBJDUMP PERL PREFIX
 export GENERIC_CFLAGS GENERIC_CXXFLAGS GENERIC_LDFLAGS
 export DEFINES INCLUDES LOADLIBES
 export ARCHLIBDIR
+export MM-sysdir
 
 Standard-targets := all _all clean install build
 
@@ -69,4 +67,4 @@ MM-default-bindir := sbin
 export MM-default-bindir
 
 # Generic definitions
-include $(SCRIPTDIR)/generic.include
+include $(MM-sysdir)/generic.include

@@ -6,10 +6,6 @@ PHONY :=
 action := $(MAKECMDGOALS)
 targets :=
 cleanups :=
-C-Programs :=
-CXX-Programs :=
-Static-Libs :=
-Dynamic-Libs :=
 ifdef PROJECT_OUTPUT_DIR
 Src := $(PROJECT_ROOT)/$(dir)/
 Out := $(PROJECT_OUTPUT_DIR)/$(dir)/
@@ -17,7 +13,7 @@ else
 Src :=$(empty)
 Out :=$(empty)
 endif
-include generic.include
+include $(MM-sysdir)/generic.include
 
 
 #########################
@@ -44,21 +40,23 @@ endif
 endif
 
 # Standard targets
-PHONY += all
+PHONY += all build clean install
 all: build
 
-PHONY += build
 build: MM-build
 MM-build:: $(subdirs) $(targets)
+MM-build:: ; @:
 
-PHONY += clean
 clean: MM-clean
 MM-clean:: $(subdirs)
 	$(call rule_clean)
 
-PHONY += install
 install: MM-install
 MM-install:: $(subdirs)
+
+# The handy FORCE target
+PHONY += FORCE
+FORCE:
 
 # include generated dependencies if present
 -include $(patsubst %.o,%.d,$(filter %.o,$(targets) $(cleanups)))
@@ -74,16 +72,12 @@ PHONY += $(subdirs)
 $(subdirs):
 ifdef PROJECT_OUTPUT_DIR
 	$(Q)mkdir -p $(PROJECT_OUTPUT_DIR)/$(dir)/$@
-	@$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
+	@$(MAKE) -C$@ -f $(MM-sysdir)/descend.include dir=$(dir)/$@ \
 		$(action) VPATH=$(PROJECT_ROOT)/$(dir)/$@
 else
 	@$(call MM-hint,make $(action) in $(dir)/$@)
-	@$(MAKE) -C$@ -f $(SCRIPTDIR)/descend.include dir=$(dir)/$@ \
+	@$(MAKE) -C$@ -f $(MM-sysdir)/descend.include dir=$(dir)/$@ \
 		$(action)
 endif
-
-# The handy FORCE target
-PHONY += FORCE
-FORCE:
 
 .PHONY: $(PHONY)
