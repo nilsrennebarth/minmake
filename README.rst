@@ -31,8 +31,11 @@ be unlikely to work with something else. It requires at least make 3.81
 
 For documentation see `the user manual`_
 
-.. _the user manual: doc/user-manual.rst
+There is also an incomplete `hacking howto`_ that is supposed to
+explain minmakes internal workings.
 
+.. _the user manual: doc/user-manual.rst
+.. _hacking howto: doc/hacking-howto.rst
 
 Example
 =======
