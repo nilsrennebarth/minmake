@@ -1,0 +1,22 @@
+# Call toplevel make to do a subdirectory make                  -*-Makefile-gmake-*-
+
+# This file is supposed to be symlinked from a subdirectory, using
+# GNUmakefile as the filename of the link. It will then determine the
+# subdirectory it is called from, and issue a make D=<subdir>
+#
+# That allows to cd to a subdirectory and just call make as we
+# were used to, but actually use the centralized build system.
+
+ORIGDIR := $(realpath .)
+TOPDIR := $(realpath $(dir $(realpath GNUmakefile))..)
+SUBDIR := $(subst $(TOPDIR)/,,$(ORIGDIR))
+
+all:
+#	@echo "Would call $(MAKE) -C $(TOPDIR) D=$(SUBDIR) $(MAKECMDGOALS)"
+	$(MAKE) -C $(TOPDIR) D=$(SUBDIR) $(MAKECMDGOALS)
+
+
+%: all
+	@:
+
+.PHONY: all
