@@ -10,6 +10,7 @@
 ORIGDIR := $(realpath .)
 TOPDIR := $(realpath $(dir $(realpath GNUmakefile))..)
 SUBDIR := $(subst $(TOPDIR)/,,$(ORIGDIR))
+MAKEFLAGS += --no-print-directory
 
 all:
 #	@echo "Would call $(MAKE) -C $(TOPDIR) D=$(SUBDIR) $(MAKECMDGOALS)"
