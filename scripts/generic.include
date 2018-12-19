@@ -148,32 +148,50 @@ endef
 # Install
 quiet_cmd_instlib  = install libs in $(dir)/
 quiet_cmd_instprog = install progs in $(dir)/
+quiet_cmd_instplug = install plugins in $(dir)/
 Instd = $(DESTDIR)$(PREFIX)
 
 #
 # Templates for magic production rules
 #
 
-# template for dymanic libraries
+# template for plugins
+define C-Plugin-template
+targets += $(1).so
+cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
+$(1).so: GENERIC_CFLAGS += -fpic -fPIC
+$(1).so: GENERIC_LDFLAGS += -shared
+$(1).so: $$($(1)-Objects)
+	$$(call rule_cc_o)
+$(1)-Instdir ?= $(MM-Plugindir)
+MM-install::
+	@$(call echo-cmd,instlib):
+	$(Q)mkdir   -p $(Instd)/$$($(1)-Instdir)
+	$(Q)cp $(1).so $(Instd)/$$($(1)-Instdir)
+endef
+
+# template for dynamic libraries
 define Dynamic-Lib-template
 $(1)-Version ?= 0.0.0
 $(1)-Sversion ?= $$(firstword $$(subst ., ,$$($(1)-Version)))
 targets += $(1).so
 cleanups += $(1).so.$$($(1)-Version) $(1).so.$$($(1)-Sversion)
 cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
-$(1).so: GENERIC_CFLAGS += -fpic
+$(1).so: GENERIC_CFLAGS += -fpic -fPIC
 $(1).so: GENERIC_LDFLAGS += -shared -Wl,-soname,$(1).so.$$($(1)-Sversion)
 $(1).so: $$($(1)-Objects)
 	$$(call rule_cc_o)
 	$(Q)mv $(1).so $(1).so.$$($(1)-Version)
 	$(Q)ln -sf $(1).so.$$($(1)-Version) $(1).so
 	$(Q)ln -sf $(1).so.$$($(1)-Version) $(1).so.$$($(1)-Sversion)
-install::
+MM-install::
 	@$(call echo-cmd,instlib):
+ifdef $(1)-Headers
 	$(Q)mkdir -p $(Instd)/include/$$($(1)-Inst-Headers)
 	$(Q)cp $$($(1)-Headers) $(Instd)/include/$$($(1)-Inst-Headers)
-	$(Q)mkdir -p $(Instd)/lib
-	$(Q)cp --no-dereference $(1).so* $(Instd)/lib
+endif
+	$(Q)mkdir -p $(Instd)/lib/$(ARCHLIBDIR)
+	$(Q)cp --no-dereference $(1).so* $(Instd)/lib/$(ARCHLIBDIR)
 endef
 
 # template for static libraries
@@ -181,10 +199,12 @@ define Static-Lib-template
 $(1).a: $$($(1)-Objects)
 targets += $(1).a
 cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
-install::
+MM-install::
 	@$(call echo-cmd,instlib):
+ifdef $(1)-Headers
 	$(Q)mkdir -p $(Instd)/include/$$($(1)-Inst-Headers)
 	$(Q)cp $$($(1)-Headers) $(Instd)/include/$$($(1)-Inst-Headers)
+endif
 	$(Q)mkdir -p $(Instd)/lib
 	$(Q)cp $(1).a $(Instd)/lib
 endef
@@ -194,11 +214,11 @@ define CXX-Program-template
 $(1): $$($(1)-Objects)
 targets += $(1)
 cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
-$(1)-Instdir ?= bin
+$(1)-Instdir ?= $(MM-default-bindir)
 $(1):
 	$$(call rule_cxx_o)
 ifdef $(1)-Instdir
-install::
+MM-install::
 	@$(call echo-cmd,instprog):
 	$(Q)mkdir -p $(Instd)/$$($(1)-Instdir)
 	$(Q)cp $(1) $(Instd)/$$($(1)-Instdir)
@@ -208,13 +228,16 @@ endef
 # template for a C program
 define C-Program-template
 $(1): $$($(1)-Objects)
+ifdef $(1)-Staticlibs
+$(1): $$($(1)-Staticlibs)
+endif
 targets += $(1)
 cleanups += $$($(1)-Objects) $$($(1)-Objects:%.o=%.d)
-$(1)-Instdir ?= bin
+$(1)-Instdir ?= $(MM-default-bindir)
 $(1):
 	$$(call rule_cc_o)
 ifdef $(1)-Instdir
-install::
+MM-install::
 	@$(call echo-cmd,instprog):
 	$(Q)mkdir -p $(Instd)/$$($(1)-Instdir)
 	$(Q)cp $(1) $(Instd)/$$($(1)-Instdir)

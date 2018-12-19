@@ -32,24 +32,33 @@ include $(PROJECT_ROOT)/$(dir)/Makefile
 # Expand templates
 $(foreach prog,$(C-Programs),$(eval $(call C-Program-template,$(prog))))
 $(foreach prog,$(CXX-Programs),$(eval $(call CXX-Program-template,$(prog))))
+$(foreach prog,$(C-Plugins),$(eval $(call C-Plugin-template,$(prog))))
 $(foreach lib,$(Static-Libs),$(eval $(call Static-Lib-template,$(lib))))
 $(foreach lib,$(Dynamic-Libs),$(eval $(call Dynamic-Lib-template,$(lib))))
 
 # Guard against misuse or typos
+ifeq ($(strip $(MM-only)),yes)
 ifeq ($(strip $(targets)$(subdirs)),)
 $(error No target and no subdirectory present)
 endif
+endif
 
 # Standard targets
+PHONY += all
+all: build
+
 PHONY += build
-build:: $(subdirs) $(targets)
+build: MM-build
+MM-build:: $(subdirs) $(targets)
 
 PHONY += clean
-clean:: $(subdirs)
+clean: MM-clean
+MM-clean:: $(subdirs)
 	$(call rule_clean)
 
 PHONY += install
-install:: $(subdirs)
+install: MM-install
+MM-install:: $(subdirs)
 
 # include generated dependencies if present
 -include $(patsubst %.o,%.d,$(filter %.o,$(targets) $(cleanups)))

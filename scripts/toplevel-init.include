@@ -1,6 +1,6 @@
 # Generic toplevel makefile, initial part              -*-Makefile-gmake-*-
 # Store initial directory
-PROJECT_ROOT:=$(CURDIR)
+PROJECT_ROOT:=$(shell pwd)
 export PROJECT_ROOT
 
 # Do not use make's built-in rules and variables
@@ -9,6 +9,8 @@ MAKEFLAGS += -rR
 
 # look for fixed makefile parts here
 MAKEFLAGS += --include-dir=$(SCRIPTDIR)
+
+ARCHLIBDIR := $(shell dpkg-architecture -qDEB_TARGET_MULTIARCH)
 
 # Support verbose with V=1, or with V containing s to support openwrt
 Build_verbose := $(if $(findstring s,$(V)),1,$(V))
@@ -53,19 +55,16 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 PERL		= perl
 PREFIX          = /usr/local
 
-# compiler flags
-c_comflags := -Wall -fno-strict-aliasing -Wno-trigraphs \
-			-Wno-write-strings
-
-GENERIC_CXXFLAGS := $(c_comflags)
-GENERIC_CFLAGS   := $(c_comflags) -Wstrict-prototypes
-
 # export global Variables
 export AS LD CC CPP CXX AR NM STRIP OBJCOPY OBJDUMP PERL PREFIX
-export GENERIC_CFLAGS GENERIC_CXXFLAGS
+export GENERIC_CFLAGS GENERIC_CXXFLAGS GENERIC_LDFLAGS
 export DEFINES INCLUDES LOADLIBES
+export ARCHLIBDIR
 
 Standard-targets := all _all clean install build
+
+MM-only := yes
+export MM-only
 
 # Generic definitions
 include $(SCRIPTDIR)/generic.include
