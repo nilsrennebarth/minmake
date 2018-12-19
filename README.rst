@@ -9,13 +9,16 @@ Features
 
 The make system uses GNU make's (and GCC's) features to create a build system
 with the following features:
+
 - recursive builds
 - common options (compile flags, defines, ...) can be set at the
   root of the project
 - various levels of verbosity:
+
   - quiet
   - just show what files are generated (default)
   - show the full commands as make traditionally does
+
 - support a pristine source build where all generated files are created
   outside of the source tree.
 - Completely automated generation of all C source dependencies
@@ -26,9 +29,10 @@ with the following features:
 minmake makes extensive use of GNU make and gcc specific features and will
 be unlikely to work with something else. It requires at least make 3.81
 
-For documentation see `the user manual_`
+For documentation see `the user manual`_
 
 .. _the user manual: doc/user-manual.rst
+
 
 Example
 =======
