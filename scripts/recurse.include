@@ -1,3 +1,5 @@
+# The recursion mechanism itself         -*-Makefile-gmake-*-
+
 # Standard targets
 PHONY += build clean install
 
