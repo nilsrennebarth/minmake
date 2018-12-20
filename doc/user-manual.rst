@@ -236,22 +236,24 @@ Other special variables
 There are a few other variables that are used internally, but that you
 may use as well:
 
-- ``targets`` Contains all targets made in the current directory when
+:targets: Contains all targets made in the current directory when
   make is called without a specific target, i.e. when doing ``make all``.
   These must be real files and they will be removed by ``make clean``.
   Use it when you need to write special recipes not covered by
   minmake.
-- ``cleanups`` All files that will be removed during ``make clean``.
+:cleanups: All files that will be removed during ``make clean``.
   Add files that are produced by your own rules but are not direct
   make targets on their own, e.g. C-header files autogenrated from
   some data source.
-- ``PHONY`` Contains all phony targets. These are targets whose
+:PHONY: Contains all phony targets. These are targets whose
   recipe will be run even if they already exist or appear to be up to
   date. See the `make` manual, section `Phony Targets` for details,
-- ``space``, ``comma``, ``empty``, ``squote`` contain what thei name
-  suggests and are used to smuggle these characters around make's
-  parsing rules.
-- ``PROJECT_ROOT`` contains your project's root directory.
+:space:
+:comma:
+:empty:
+:squote: contain what their name suggests and are used to smuggle these
+  characters around make's parsing rules.
+:PROJECT_ROOT: contains your project's root directory.
 
 Install other files
 -------------------
