@@ -33,7 +33,7 @@ be unlikely to work with something else. It requires at least make 3.81
 
 For documentation see `the user manual`_
 
-There is also an incomplete `hacking howto`_ that is supposed to
+There is also a `hacking howto`_ that is supposed to
 explain minmakes internal workings.
 
 .. _the user manual: doc/user-manual.rst
@@ -55,12 +55,17 @@ Toplevel Makefile
   MM-sysdir:=$(shell pwd)/scripts
   $(MM-sysdir)/toplevel-init.include: ;
   include $(MM-sysdir)/toplevel-init.include
-   
+
+
   GENERIC_CFLAGS := -Werror -Wall -O2 -g
   DEFINES := -D_GNU_SOURCE -DDEBUG -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
   INCLUDES := -I /usr/include/glib-2.0
   GENERIC_LDFLAGS := -g -Wl,--as-needed
    
+  subdirs := lib src
+  src: lib
+
+
   # minmake infrastructure, toplevel footer
   $(MM-sysdir)/toplevel-exit.include: ;
   include $(MM-sysdir)/toplevel-exit.include
