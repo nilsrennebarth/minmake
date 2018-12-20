@@ -5,13 +5,13 @@
 Installation
 ============
 Copy the directory ``scripts`` to the toplevel directory of your
-project. ().
+project.
 
 Add the following header to the start of your toplevel Makefile::
 
   # minmake infrastructure, toplevel boilerplate
-  PHONY := _all
-  _all: all
+  PHONY := _build
+  _build: build
   MM-sysdir:=$(shell pwd)/scripts
   $(MM-sysdir)/toplevel-init.include: ;
   include $(MM-sysdir)/toplevel-init.include
@@ -34,11 +34,38 @@ some convenient shortcuts to automatically recurse into
 subdirectories and it provides templates and rules using magic
 variables that allow a very compact and declarative make style.
 
-Minmake usually runs in summary mode, where make will just issue a
-short summary line when it invokes an external command or enters a
-subdirectory. You can get the full verbose output by adding ``V=1`` on
-the commandline.  Running make -s will work as well and will even
-silence the summary.
+In each subdirectory makefile you can add an ``install:`` target that
+works as expected, it performs the given recipe during ``make install``.
+
+``make clean`` will remove generated files recursively. For additional
+cleanup actions in a subdirectory, just add the files to the variable
+``cleanups``. You can also define a ``clean:`` target that will work
+as expected. To prevent a certain file from being removed during
+``make clean``, remove it from the ``cleanups`` variable. The
+``$(filter-out )`` built-in function of GNU make will be useful in
+that case.
+
+
+Output mode
+-----------
+Minmake runs in quiet mode by default, just issuing a
+short summary line whenever an external command is run or a
+subdirectory is entered.
+
+To select verbose mode add ``V=1`` on the commandline.
+
+To select silent mode, call make with the ``-s`` flag as usual.
+
+Subdirectory selection
+----------------------
+By default, minmake expects to be called in the toplevel directory and
+expects one of the pseudo targets `clean` or ``install`, or no target
+at all which is equivalent to the pseudo target `build`. In all these
+cases, make is run recursively on the whole source tree, using the
+same pseudo target on every level.
+
+Any other target that make is given on the command line must be
+defined in your toplevel makefile.
 
 To only run make in a subtree, set the variable ``D`` on the command
 line to the subdirectory, e.g. ``make D=lib/foo`` to only run make in
@@ -47,12 +74,17 @@ install``. If ``D`` is used, you may also give some specific target
 files, instead of making everything (provided, the target is actually
 produced in the given directory, of course).
 
-There is an auto-invocation feature to allow the normal workflow where
-you change to a directory and just run ``make`` or ``make foo``.
-In order for that feature to work, you will need to
-create a symlink named ``GNUmakefile`` in each directory where you
-want to use the feature. The symlink must point to minmake's
-``call-subdir-make`` file.
+Calling make from a subdirectory
+--------------------------------
+The makefiles in your project's subdirectories are not intended to be
+run by make directly, as make would miss all the rules and templates,
+and your global definitions in the toplevel Makefile as well.
+
+With a small preparation however, you can still cd into a subdirectory
+and run make as you are used to: Create a symlink named
+``GNUmakefile`` in the subdirectory, that points to minmake's
+``call-subdir-make`` file. This needs to be done once for every
+subdirectory where you want to run make directly.
 
 
 Minmake variables and rules
@@ -219,7 +251,7 @@ may use as well:
 - ``space``, ``comma``, ``empty``, ``squote`` contain what thei name
   suggests and are used to smuggle these characters around make's
   parsing rules.
-- Instd
+- ``PROJECT_ROOT`` contains your project's root directory.
 
 Install other files
 -------------------

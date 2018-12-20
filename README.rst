@@ -15,9 +15,9 @@ with the following features:
   root of the project
 - Various levels of verbosity:
 
-  - quiet, no output except errors
-  - short, one-line summaries of what gets build (default)
-  - full, show the full commands as make traditionally does
+  - silent, no output except errors
+  - quiet, one-line summaries of what gets build (default)
+  - verbose, show the full commands as make traditionally does
 
 - Support a pristine source build where all generated files are created
   outside of the source tree.
