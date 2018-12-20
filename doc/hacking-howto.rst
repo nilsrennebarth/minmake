@@ -80,5 +80,10 @@ provide make with a proper default target, in case make is called
 without arguments. It just redirets to the actual build target
 defined later.
 
-
-
+Both, the call-subdir-make and the ifdef D part in
+toplevel-exit.include use the same trick. The problem: even if make is
+called with several goal targets, we only want to redirect to a single
+make call with the same goals. Also we don't know the given targets,
+so we need to allow anything. The solutions: Use a catch all recipe,
+that does nothing, but has a phony precondition that has the desired
+call as a precondition.
