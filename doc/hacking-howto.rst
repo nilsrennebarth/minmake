@@ -49,7 +49,7 @@ minmake via templates. This is easier to code and allows to slightly
 transform the output: All output is started by two blanks, except
 subdir changes which start in the first column.
 
-The various echo-cmd function only differ in the number of args they
+The various echo-cmd functions only differ in the number of args they
 take. Use as much as any of the cmd_xxx or the quiet_cmd_xxx function needs.
 The expansion of these functions will end in a semicolon, so they can
 directly be followed by the actual commands.
