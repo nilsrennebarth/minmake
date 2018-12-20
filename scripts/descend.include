@@ -39,45 +39,5 @@ $(error No target and no subdirectory present)
 endif
 endif
 
-# Standard targets
-PHONY += all build clean install
-all: build
 
-build: MM-build
-MM-build:: $(subdirs) $(targets)
-MM-build:: ; @:
-
-clean: MM-clean
-MM-clean:: $(subdirs)
-	$(call rule_clean)
-
-install: MM-install
-MM-install:: $(subdirs)
-
-# The handy FORCE target
-PHONY += FORCE
-FORCE:
-
-# include generated dependencies if present
--include $(patsubst %.o,%.d,$(filter %.o,$(targets) $(cleanups)))
-
-MM-hint=:
-ifneq ($(filter build install,$(action)),)
-ifneq ($(Q),)
-MM-hint=echo '$(call escsq,$(1))';
-endif
-endif
-# Descend into subdirs
-PHONY += $(subdirs)
-$(subdirs):
-ifdef PROJECT_OUTPUT_DIR
-	$(Q)mkdir -p $(PROJECT_OUTPUT_DIR)/$(dir)/$@
-	@$(MAKE) -C$@ -f $(MM-sysdir)/descend.include dir=$(dir)/$@ \
-		$(action) VPATH=$(PROJECT_ROOT)/$(dir)/$@
-else
-	@$(call MM-hint,make $(action) in $(dir)/$@)
-	@$(MAKE) -C$@ -f $(MM-sysdir)/descend.include dir=$(dir)/$@ \
-		$(action)
-endif
-
-.PHONY: $(PHONY)
+include $(MM-sysdir)/recurse.include

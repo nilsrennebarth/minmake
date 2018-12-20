@@ -1,0 +1,47 @@
+# Standard targets
+PHONY += build clean install
+
+build: MM-build
+MM-build:: $(subdirs) $(targets)
+MM-build:: ; @:
+
+clean: MM-clean
+MM-clean:: $(subdirs)
+	$(call rule_clean)
+
+install: MM-install
+MM-install:: $(subdirs)
+
+# The handy FORCE target
+PHONY += FORCE
+FORCE:
+
+# include generated dependencies if present
+-include $(patsubst %.o,%.d,$(filter %.o,$(targets) $(cleanups)))
+
+MM-hint=:
+ifneq ($(filter build install,$(action)),)
+ifneq ($(Q),)
+MM-hint=echo '$(call escsq,$(1))';
+endif
+endif
+# Descend into subdirs
+_MM_subdir = $(if $(dir),$(dir)/$@,$@)
+PHONY += $(subdirs)
+$(subdirs):
+ifdef PROJECT_OUTPUT_DIR
+	$(Q)mkdir -p $(PROJECT_OUTPUT_DIR)/$(_MM_subdir)
+	@$(MAKE) -C $(PROJECT_OUTPUT_DIR)/$(_MM_subdir) \
+		-f $(MM-sysdir)/descend.include \
+		VPATH=$(PROJECT_ROOT)/$(_MM_subdir) \
+		dir=$(_MM_subdir) \
+		$(action)
+else
+	@$(call MM-hint,make $(action) in $(_MM_subdir))
+	@$(MAKE) -C $@ \
+		-f $(MM-sysdir)/descend.include \
+		dir=$(_MM_subdir) \
+		$(action)
+endif
+
+.PHONY: $(PHONY)

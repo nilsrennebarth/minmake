@@ -1,59 +1,32 @@
 # Generic toplevel makefile, final part                -*-Makefile-gmake-*-
 
+# Optimization: do not remake the toplevel Makefile
+$(PROJECT_ROOT)/Makefile: ;
+
 ifdef D
 # Just do a sub make in target dir D
-%:
-	$(Q)$(MAKE) -C $(D) -f $(MM-sysdir)/descend.include \
-		dir=$(D) $@
+all:
+	@$(MAKE) -C $(D) -f $(MM-sysdir)/descend.include dir=$(D) $(MAKECMDGOALS)
+
+%: all
+	@:
+
+.PHONY: all
 endif
 
 ifndef D
 # normal call, target dir D not given
 
-PHONY += all build clean install
-
 ifeq ($(MAKECMDGOALS),)
 action := build
 endif
 
-all: action=build
-all: $(subdirs) $(targets)
+build: action := build
+clean: action := clean
+install: action := install
 
-clean:: action=clean
-clean:: $(subdirs)
-clean::
-	@rm -f $(targets)
 
-install:: action=install
-install:: $(subdirs)
+include $(MM-sysdir)/recurse.include
 
-# The handy FORCE target
-PHONY += FORCE
-FORCE:
-
-# include generated dependencies if present
--include $(patsubst %.o,%.d,$(filter %.o,$(targets) $(cleanups)))
-
-MM-hint=:
-ifneq ($(filter build install,$(action)),)
-ifneq ($(Q),)
-MM-hint=echo '$(call escsq,$(1))';
-endif
-endif
-PHONY += $(subdirs)
-$(subdirs):
-ifdef PROJECT_OUTPUT_DIR
-	$(Q)mkdir -p $(PROJECT_OUTPUT_DIR)/$@
-	$(Q)$(MAKE) -C $(PROJECT_OUTPUT_DIR)/$@ -f $(MM-sysdir)/descend.include \
-		dir=$@ $(action) VPATH=$(PROJECT_ROOT)/$@
-else
-	@$(call MM-hint,make $(action) in $@)
-	$(Q)$(MAKE) -C $@ -f $(MM-sysdir)/descend.include \
-		dir=$@ $(action)
-endif
 endif
 
-# Optimization: do not remake the toplevel Makefile
-$(PROJECT_ROOT)/Makefile: ;
-
-.PHONY: $(PHONY)
