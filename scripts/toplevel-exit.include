@@ -5,6 +5,10 @@ $(PROJECT_ROOT)/Makefile: ;
 
 ifdef D
 # Just do a sub make in target dir D
+ifeq ($(MAKECMDGOALS),)
+MAKECMDGOALS := build
+endif
+
 all:
 	@$(MAKE) -C $(D) -f $(MM-sysdir)/descend.include dir=$(D) $(MAKECMDGOALS)
 
