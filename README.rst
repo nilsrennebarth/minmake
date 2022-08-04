@@ -16,8 +16,8 @@ with the following features:
 - Various levels of verbosity:
 
   - silent, no output except errors
-  - quiet, one-line summaries of what gets build (default)
-  - verbose, show the full commands as make traditionally does
+  - quiet, one-line summaries of what gets built (default)
+  - verbose, show the full commands like make
 
 - Support a pristine source build where all generated files are created
   outside of the source tree.
